@@ -24,4 +24,11 @@ class ProductController extends Controller
             201
         );
     }
+
+    public function show(int $id)
+    {
+        $product = Product::findOrFail($id);
+
+        return response()->json(new ProductResource($product));
+    }
 }
