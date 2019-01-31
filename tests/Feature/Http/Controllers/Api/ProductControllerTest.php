@@ -26,10 +26,14 @@ class ProductControllerTest extends TestCase
             'slug' => str_slug($name),
             'price' => $price = random_int(10, 100),
         ]);
+
+        // \Log::info(1, [
+        //     $response->getContent()
+        // ]);
+
         // Then
             // product exists
-        $response
-        ->assertJsonStructure([
+        $response->assertJsonStructure([
             'id',
             'name',
             'slug',
