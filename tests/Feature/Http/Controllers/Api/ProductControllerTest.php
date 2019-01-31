@@ -9,6 +9,8 @@ use Faker\Factory;
 
 class ProductControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @test
      */
