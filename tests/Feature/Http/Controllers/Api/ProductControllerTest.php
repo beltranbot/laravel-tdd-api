@@ -128,4 +128,48 @@ class ProductControllerTest extends TestCase
             'updated_at' => (string)$product->updated_at,
         ]);
     }
+
+     /**
+     * @test
+     */
+    public function will_fail_with_a_404_if_product_we_want_to_delete_is_not_found()
+    {
+        $response = $this->json('DELETE', '/api/products/-1');
+
+        $response->assertStatus(404);
+    }
+
+    /**
+     * @test
+     */
+    public function can_delete_a_product()
+    {
+        $product = $this->create('Product');
+        $response = $this->json('DELETE', "/api/products/$product->id");
+
+        $response->assertStatus(204)
+            ->assertSee(null);
+        
+        $this->assertDatabaseMissing('products', [
+            'id' => $product->id,
+        ]);
+
+        // $response->assertStatus(200)
+        //     ->assertExactJson([
+        //         'id' => $product->id,
+        //         'name' => $product->name.'_updated',
+        //         'slug' => str_slug($product->name.'_updated'),
+        //         'price' => $product->price + 10,
+        //         'created_at' => (string)$product->created_at,
+        //     ]);
+
+        // $this->assertDatabaseHas('products', [
+        //     'id' => $product->id,
+        //     'name' => $product->name.'_updated',
+        //     'slug' => str_slug($product->name.'_updated'),
+        //     'price' => $product->price + 10,
+        //     'created_at' => (string)$product->created_at,
+        //     'updated_at' => (string)$product->updated_at,
+        // ]);
+    }
 }

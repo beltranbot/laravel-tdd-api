@@ -44,4 +44,13 @@ class ProductController extends Controller
 
         return response()->json(new ProductResource($product));
     }
+
+    public function destroy(int $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $product->delete();
+
+        return response()->json(null, 204);
+    }
 }
