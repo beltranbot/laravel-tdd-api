@@ -14,6 +14,37 @@ class ProductControllerTest extends TestCase
     /**
      * @test
      */
+
+    public function can_return_a_collection_of_paginated_products()
+    {
+        $product1 = $this->create('Product');
+        $product2 = $this->create('Product');
+        $product3 = $this->create('Product');
+
+        $response = $this->json('GET', '/api/products');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'slug',
+                        'price',
+                        'created_at',
+                    ]
+                ],
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => [
+                    'current_page', 'last_page', 'from', 'to',
+                    'path', 'per_page', 'total'
+                ]
+            ]);
+    }
+
+    /**
+     * @test
+     */
     public function can_create_a_product()
     {
 
@@ -153,23 +184,5 @@ class ProductControllerTest extends TestCase
         $this->assertDatabaseMissing('products', [
             'id' => $product->id,
         ]);
-
-        // $response->assertStatus(200)
-        //     ->assertExactJson([
-        //         'id' => $product->id,
-        //         'name' => $product->name.'_updated',
-        //         'slug' => str_slug($product->name.'_updated'),
-        //         'price' => $product->price + 10,
-        //         'created_at' => (string)$product->created_at,
-        //     ]);
-
-        // $this->assertDatabaseHas('products', [
-        //     'id' => $product->id,
-        //     'name' => $product->name.'_updated',
-        //     'slug' => str_slug($product->name.'_updated'),
-        //     'price' => $product->price + 10,
-        //     'created_at' => (string)$product->created_at,
-        //     'updated_at' => (string)$product->updated_at,
-        // ]);
     }
 }
