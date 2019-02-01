@@ -65,6 +65,9 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
+            <a href="{{url('/social/auth/google')}}">
+                Login with google
+            </a>
             @if (Route::has('login'))
                 <div class="top-right links">
                     @auth

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Auth;
 use App\User;
+use Socialite;
 
 class AuthController extends Controller
 {
@@ -22,6 +23,20 @@ class AuthController extends Controller
             $token = $user->createToken($request->email)->accessToken;
             return response()->json(['token' => $token]);
         }
+    }
+
+    public function redirect($provider)
+    {
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function callback($provider)
+    {
+        $user = Socialite::driver($provider)->user();
+        \Log::info('user', [$user]);
+        \Log::info($user->token);
+
+        return redirect()->away("http://localhost:8000?token=$user->token");
     }
 
 }

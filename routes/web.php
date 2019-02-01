@@ -16,3 +16,5 @@ Route::get('/', function () {
 });
 
 Route::post('/auth/token', 'Auth\AuthController@store');
+Route::get('/social/auth/{provider}', 'Auth\AuthController@redirect');
+Route::get('/social/auth/{provider}/callback', 'Auth\AuthController@callback');
