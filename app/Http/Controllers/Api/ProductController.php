@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-
-use Illuminate\Http\Request;
 use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Controllers\Controller;
 
 use App\Product;
@@ -40,15 +39,22 @@ class ProductController extends Controller
         return response()->json(new ProductResource($product));
     }
 
-    public function update(Request $request, int $id)
+    public function update(ProductUpdateRequest $request, int $id)
     {
         $product = Product::findOrFail($id);
 
-        $product->update([
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'price' => $request->price,
-        ]);
+        $updatedProduct = [];
+        if ($request->name) {
+            $updatedProduct['name'] = $request->name;
+        }
+        if ($request->slug) {
+            $updatedProduct['slug'] = $request->slug;
+        }
+        if ($request->price) {
+            $updatedProduct['price'] = $request->price;
+        }
+
+        $product->update($updatedProduct);
 
         return response()->json(new ProductResource($product));
     }

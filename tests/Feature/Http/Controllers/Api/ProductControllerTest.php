@@ -116,6 +116,74 @@ class ProductControllerTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    /**
+     * @test
+     */
+    public function will_fail_with_valiation_errors_when_updating_a_product_with_wrong_inputs()
+    {
+        $product1 = $this->create('Product');
+        $product2 = $this->create('Product');
+
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('PUT', "/api/products/$product2->id", [
+                'name' => $product1->name,
+                'price' => 'aaa'
+            ]);
+        
+        $response->assertStatus(422)
+            ->assertExactJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'name' => [
+                        'The name has already been taken.'
+                    ],
+                    'price' => [
+                        'The price must be an integer.'
+                    ]
+                ]
+            ]);
+        
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('PUT', "/api/products/$product2->id", [
+                'price' => 100
+            ]);
+        
+        $response->assertStatus(422)
+            ->assertExactJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'name' => [
+                        'The name field is required.'
+                    ]
+                ]
+            ]);
+        
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('PUT', "/api/products/$product2->id", [
+                'name' => str_random(65),
+                'price' => 100
+            ]);
+        
+        $response->assertStatus(422)
+            ->assertExactJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'name' => [
+                        'The name may not be greater than 64 characters.'
+                    ]
+                ]
+            ]);
+
+        $product3 = $this->create('Product');
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('PUT', "/api/products/$product3->id", [
+                'name' => $product3->name,
+                'price' => 100,
+            ]);
+
+        $response->assertStatus(200);
 
     }
 
