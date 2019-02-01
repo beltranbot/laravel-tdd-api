@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 
 use Illuminate\Http\Request;
+use App\Http\Requests\ProductStoreRequest;
 use App\Http\Controllers\Controller;
 
 use App\Product;
@@ -18,7 +19,7 @@ class ProductController extends Controller
         return new ProductCollection(Product::paginate());
     }
 
-    public function store(Request $request)
+    public function store(ProductStoreRequest $request)
     {
         $product = Product::create ([
             'name' => $request->name,
