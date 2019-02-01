@@ -43,18 +43,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $updatedProduct = [];
-        if ($request->name) {
-            $updatedProduct['name'] = $request->name;
-        }
-        if ($request->slug) {
-            $updatedProduct['slug'] = $request->slug;
-        }
-        if ($request->price) {
-            $updatedProduct['price'] = $request->price;
-        }
-
-        $product->update($updatedProduct);
+        $product->update($request->all());
 
         return response()->json(new ProductResource($product));
     }
