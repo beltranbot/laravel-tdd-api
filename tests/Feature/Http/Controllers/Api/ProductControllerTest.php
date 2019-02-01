@@ -6,6 +6,8 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Faker\Factory;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class ProductControllerTest extends TestCase
 {
@@ -69,10 +71,11 @@ class ProductControllerTest extends TestCase
     public function will_fail_with_valiation_errors_when_creating_a_product_with_wrong_inputs()
     {
         $product = $this->create('Product');
-        $response = $this->actingAs($this->create('User', [], false), 'api')->json('POST', '/api/products', [
-            'name' => $product->name,
-            'price' => 'aa'
-        ]);
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('POST', '/api/products', [
+                'name' => $product->name,
+                'price' => 'aa'
+            ]);
 
         $response->assertStatus(422)
             ->assertExactJson([
@@ -102,10 +105,11 @@ class ProductControllerTest extends TestCase
                 ]
             ]);
         
-        $response = $this->actingAs($this->create('User', [], false), 'api')->json('POST', '/api/products', [
-            'name' => str_random(65),
-            'price' => 100
-        ]);
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('POST', '/api/products', [
+                'name' => str_random(65),
+                'price' => 100
+            ]);
 
         $response->assertStatus(422)
             ->assertExactJson([
@@ -192,24 +196,23 @@ class ProductControllerTest extends TestCase
      */
     public function can_create_a_product()
     {
-
         $faker = Factory::create();
-        // $this->assertTrue(true);
         // Given
             // User is authenticated
         // When
             // post request create product
         $response = $this->actingAs($this->create('User', [], false), 'api')
             ->json('POST', '/api/products', [
-            'name' => $name = $faker->company,
-            'slug' => str_slug($name),
-            'price' => $price = random_int(10, 100),
-        ]);
+                'name' => $name = $faker->company,
+                'slug' => str_slug($name),
+                'price' => $price = random_int(10, 100)
+            ]);
 
         // Then
             // product exists
         $response->assertJsonStructure([
             'id',
+            'image_id',
             'name',
             'slug',
             'price',
@@ -221,6 +224,56 @@ class ProductControllerTest extends TestCase
             'price' => $price,
         ])
         ->assertStatus(201);
+
+        $this->assertDatabaseHas('products',[
+            'name' => $name,
+            'slug' => str_slug($name),
+            'price' => $price,
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function can_create_a_product_with_image()
+    {
+
+        $faker = Factory::create();
+
+        Storage::fake('public');
+
+        $image = UploadedFile::fake()->image('image.jpg');
+        // Given
+            // User is authenticated
+        // When
+            // post request create product
+        $response = $this->actingAs($this->create('User', [], false), 'api')
+            ->json('POST', '/api/products', [
+                'name' => $name = $faker->company,
+                'slug' => str_slug($name),
+                'price' => $price = random_int(10, 100),
+                'image' => $image,
+            ]);
+
+        // Then
+            // product exists
+        $response->assertJsonStructure([
+            'id',
+            'image_id',
+            'name',
+            'slug',
+            'price',
+            'created_at'
+        ])
+        ->assertJson([
+            'name' => $name,
+            'slug' => str_slug($name),
+            'price' => $price,
+        ])
+        ->assertStatus(201);
+
+        Storage::disk('public')->assertExists("product_images/{$image->hashName()}");
+
         $this->assertDatabaseHas('products',[
             'name' => $name,
             'slug' => str_slug($name),
@@ -258,7 +311,7 @@ class ProductControllerTest extends TestCase
                 'slug' => $product->slug,
                 'price' => $product->price,
                 'created_at' => (string)$product->created_at,
-                // 'updated_at' => (string)$product->updated_at,
+                'image_id' => null,
             ]); 
     }
 
@@ -268,7 +321,9 @@ class ProductControllerTest extends TestCase
     public function will_fail_with_a_404_if_product_we_want_to_update_is_not_found()
     {
         $response = $this->actingAs($this->create('User', [], false), 'api')
-            ->json('PUT', '/api/products/-1');
+            ->json('PUT', '/api/products/-1', [
+                'name' => 'test'
+            ]);
 
         $response->assertStatus(404);
     }

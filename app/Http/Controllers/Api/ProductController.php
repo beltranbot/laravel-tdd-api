@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Product;
 use App\Http\Resources\Product as ProductResource;
 use App\Http\Resources\ProductCollection;
+use App\Image;
 
 class ProductController extends Controller
 {
@@ -20,11 +21,28 @@ class ProductController extends Controller
 
     public function store(ProductStoreRequest $request)
     {
-        $product = Product::create ([
+        
+        $image_arr = [];
+        $imageId = null;
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')
+                ->store('product_images', 'public');
+            $imageId = Image::create([
+                'path' => $path
+            ])->id;
+        }
+
+        $productData = [
+            'image_id' => $imageId,
             'name' => $request->name,
             'slug' => str_slug($request->name),
             'price' => $request->price,
-        ]);
+        ];
+        $productData = array_merge($image_arr, $productData);
+
+        $product = Product::create($productData);
+        // \Log::info($product);
         
         return response()->json(
             new ProductResource($product),
@@ -43,7 +61,11 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $product->update($request->all());
+        $product->update([
+            'name' => $request->name,
+            'slug' => str_slug($request->name),
+            'price' => $request->price,
+        ]);
 
         return response()->json(new ProductResource($product));
     }
