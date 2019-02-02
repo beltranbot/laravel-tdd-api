@@ -42,7 +42,6 @@ class ProductController extends Controller
         $productData = array_merge($image_arr, $productData);
 
         $product = Product::create($productData);
-        // \Log::info($product);
         
         return response()->json(
             new ProductResource($product),
@@ -59,12 +58,24 @@ class ProductController extends Controller
 
     public function update(ProductUpdateRequest $request, int $id)
     {
+        $imageId = null;
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')
+                ->store('product_images', 'public');
+            $imageId = Image::create([
+                'path' => $path
+            ])->id;
+        }
+        
         $product = Product::findOrFail($id);
+
 
         $product->update([
             'name' => $request->name,
             'slug' => str_slug($request->name),
             'price' => $request->price,
+            'image_id' => $imageId,
         ]);
 
         return response()->json(new ProductResource($product));
