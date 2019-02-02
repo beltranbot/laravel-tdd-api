@@ -10,9 +10,15 @@ use App\Product;
 use App\Http\Resources\Product as ProductResource;
 use App\Http\Resources\ProductCollection;
 use App\Image;
+use App\Utopia\Repositories\Interfaces\ProductRepoInterface;
 
 class ProductController extends Controller
 {
+    protected $productRepo;
+
+    public function __construct(ProductRepoInterface $productRepo)  {
+        $this->productRepo = $productRepo;
+    }
 
     public function index()
     {
@@ -21,28 +27,8 @@ class ProductController extends Controller
 
     public function store(ProductStoreRequest $request)
     {
-        
-        $image_arr = [];
-        $imageId = null;
+        $product = $this->productRepo->create($request);
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')
-                ->store('product_images', 'public');
-            $imageId = Image::create([
-                'path' => $path
-            ])->id;
-        }
-
-        $productData = [
-            'image_id' => $imageId,
-            'name' => $request->name,
-            'slug' => str_slug($request->name),
-            'price' => $request->price,
-        ];
-        $productData = array_merge($image_arr, $productData);
-
-        $product = Product::create($productData);
-        
         return response()->json(
             new ProductResource($product),
             201
@@ -58,25 +44,9 @@ class ProductController extends Controller
 
     public function update(ProductUpdateRequest $request, int $id)
     {
-        $imageId = null;
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')
-                ->store('product_images', 'public');
-            $imageId = Image::create([
-                'path' => $path
-            ])->id;
-        }
-        
         $product = Product::findOrFail($id);
 
-
-        $product->update([
-            'name' => $request->name,
-            'slug' => str_slug($request->name),
-            'price' => $request->price,
-            'image_id' => $imageId,
-        ]);
+        $product = $this->productRepo->update($request, $product);
 
         return response()->json(new ProductResource($product));
     }
@@ -85,7 +55,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $product->delete();
+        $this->productRepo->delete($product);
 
         return response()->json(null, 204);
     }
