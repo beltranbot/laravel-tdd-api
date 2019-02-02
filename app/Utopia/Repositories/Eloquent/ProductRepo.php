@@ -6,9 +6,15 @@ use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Product;
 use App\Utopia\Repositories\Interfaces\ProductRepoInterface;
+use App\Image;
+use App\Utopia\Repositories\Eloquent\AbstractRepo;
 
-class ProductRepo implements ProductRepoInterface
+class ProductRepo extends AbstractRepo implements ProductRepoInterface
 {
+    public function __construct()
+    {
+        parent::__construct('Product');
+    }
     public function create(ProductStoreRequest $request)
     {
         $image_arr = [];
@@ -34,7 +40,7 @@ class ProductRepo implements ProductRepoInterface
         return $product = Product::create($productData);
     }
 
-    public function update(ProductUpdateRequest $request, Product $product)
+    public function update(ProductUpdateRequest $request, $product)
     {
         $imageId = null;
 
@@ -46,15 +52,17 @@ class ProductRepo implements ProductRepoInterface
             ])->id;
         }
 
-        return $product->update([
+        $product->update([
             'name' => $request->name,
             'slug' => str_slug($request->name),
             'price' => $request->price,
             'image_id' => $imageId,
         ]);
+
+        return $product;
     }
 
-    public function delete(Product $product)
+    public function delete($product)
     {
         $product->delete();
     }

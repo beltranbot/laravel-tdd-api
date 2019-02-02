@@ -22,7 +22,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        return new ProductCollection(Product::paginate());
+        return new ProductCollection($this->productRepo->paginate());
     }
 
     public function store(ProductStoreRequest $request)
@@ -37,14 +37,14 @@ class ProductController extends Controller
 
     public function show(int $id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->productRepo->findOrFail($id);
 
         return response()->json(new ProductResource($product));
     }
 
     public function update(ProductUpdateRequest $request, int $id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->productRepo->findOrFail($id);
 
         $product = $this->productRepo->update($request, $product);
 
@@ -53,7 +53,7 @@ class ProductController extends Controller
 
     public function destroy(int $id)
     {
-        $product = Product::findOrFail($id);
+        $product = $this->productRepo->findOrFail($id);
 
         $this->productRepo->delete($product);
 
